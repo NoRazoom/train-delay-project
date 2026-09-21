@@ -1,0 +1,10 @@
+# Исторические данные и логи R
+.Rhistory
+.RData
+.Ruserdata
+.Rapp.history
+
+# Локальные файлы и кэш RStudio
+.Rproj.user/
+
+.env
