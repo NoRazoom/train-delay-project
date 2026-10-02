@@ -8,3 +8,6 @@
 .Rproj.user/
 
 .env
+.Rproj.user
+
+*.csv
