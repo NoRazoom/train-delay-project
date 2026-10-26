@@ -11,3 +11,7 @@
 .Rproj.user
 
 *.csv
+
+# Графики
+*.png
+*.jpg

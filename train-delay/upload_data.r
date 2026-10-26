@@ -39,9 +39,6 @@ download_and_save_csv <- function(output_dir = "data/", file_name = NULL) {
   )
   
   message("Данные сохранены в: ", file_path, "\n")
-  
-  # вернуть путь к файлу
-  invisible(file_path)
 }
 
 
@@ -109,6 +106,18 @@ prepare_data_for_db <- function(raw_data) {
     )
   
   message(" 2.Типы данных настроены")
+
+  n_before_delay <- nrow(data)
+  data <- data %>%
+    filter(!is.na(delay_arr), !is.na(delay_dep))
+  n_after_delay <- nrow(data)
+  
+  if (n_before_delay != n_after_delay) {
+    message(" 2.1.Удалено строк с NA в delay_arr/delay_dep: ",
+            n_before_delay - n_after_delay)
+  } else {
+    message(" 2.1.Пропусков в delay_arr/delay_dep не обнаружено")
+  }
   
   data <- data %>%
     mutate(
@@ -151,6 +160,7 @@ upload_to_db <- function(data, con, table_name = "train_observations") {
   message("\nЗагрузка в таблицу: ", table_name)
   
   # Загрузка (overwrite = TRUE заменит таблицу)
+  # dbWriteTable(con, table_name, data, overwrite = FALSE, append = TRUE, row.names = FALSE)
   dbWriteTable(con, table_name, data, overwrite = TRUE, row.names = FALSE)
   
   # Проверка
@@ -158,19 +168,36 @@ upload_to_db <- function(data, con, table_name = "train_observations") {
   message("Загружено строк: ", n_rows)
 }
 
-# """Функция полной обработки и загрузки данных"""
-processing_and_upload_data <- function(file_path, con, input_dir = "data/", 
-                          table_name = "train_observations") {
+# """Функция чтения всех данных"""
+read_all_csv <- function(input_dir = "data/", pattern = "\\.csv$") {
+  files <- list.files(input_dir, pattern = pattern, full.names = TRUE)
+  if (length(files) == 0) {
+    stop("В папке ", input_dir, " не найдено CSV-файлов")
+  }
+  message("Найдено файлов: ", length(files))
 
-  raw_data <- suppressWarnings(
-    suppressMessages(
-      read_csv2(file_path, show_col_types = FALSE)
-    )
-  )
-  
+    read_one <- function(path) {
+      message("  читаю: ", basename(path))
+      suppressWarnings(suppressMessages(
+        read_csv2(
+          path,
+          col_types = cols(.default = col_character()),
+          show_col_types = FALSE
+        )
+      ))
+    }
+
+  bind_rows(lapply(files, read_one))
+}
+
+# """Функция объединябщая чтение, обработку и загрузку данных"""
+processing_and_upload_dir <- function(input_dir, con,
+                                      table_name = "train_observations") {
+  raw_data <- read_all_csv(input_dir)
+
   prepared_data <- prepare_data_for_db(raw_data)
-  
+
   upload_to_db(prepared_data, con, table_name)
-  
+
   invisible(prepared_data)
 }
