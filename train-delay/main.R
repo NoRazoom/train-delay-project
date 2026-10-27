@@ -2,6 +2,7 @@ source("db_connection.r")
 source("upload_data.r")
 source("get_statistics.r")
 source("graphics.r")
+source("korr_graph.r")
 
 # ожидание ввода в неитерактивных терминалах
 user_input <- function(prompt) {
@@ -39,6 +40,12 @@ main <- function() {
     plot_delay_boxplot(con)
     plot_weekday_delay(con)
     message("\nВсе графики выгружены в /output/plots\n")
+  }
+
+  is_need_korr <- user_input("Произвести рассчет корреляции? да/нет: ")
+  if (tolower(trimws(is_need_korr)) == "да") {
+    get_delay_correlation(con)
+    message("\n")
   }
 }
 
