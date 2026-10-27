@@ -4,5 +4,5 @@ SELECT
 FROM train_observations
 WHERE delay_arr IS NOT NULL
     AND delay_dep IS NOT NULL
-    AND delay_arr BETWEEN -3600 AND 3600
-    AND delay_dep BETWEEN -3600 AND 3600;
+    WHERE delay_arr BETWEEN -204.5 AND 335.5
+  AND delay_dep BETWEEN -185   AND 327;
